@@ -3,6 +3,7 @@
 
 import pandas as pd
 import numpy as np
+from mysql_df import mysql_df
 
 import configparser
 
@@ -12,6 +13,8 @@ config.read('./config/app.cfg')
 KM = float(config['app']['KM'])
 D = int(config['app']['D'])
 N_DISTANCE = int(config['app']['N_DISTANCE'])
+date_query = config['app']['date_query']
+hour_query = config['app']['hour_query']
 
 str_translation = [
                         '0 - 156 mts',
@@ -143,10 +146,19 @@ def show_df(df=None):
 def main():
     global TA_COLUMNS, TA_INDEX
 
-    cells_df = pd.read_csv("./data/lcellreference_v2.csv")
+    # cells_df = pd.read_csv("./data/lcellreference_v2.csv")
     # print("cells' data read", flush=True) # debug
-    ta_df = pd.read_csv("./data/prs_lte_hour_2020_12_02_v2.csv")
+    # ta_df = pd.read_csv("./data/prs_lte_hour_2020_12_02_v2.csv")
     # print("time advanced data read", flush=True) # debug
+
+    query_ = ("select * from lcellreference ")
+    cells_df = mysql_df(query_=query_)
+
+    query_ = ("select * from prs_lte_hour where "
+        f"(dateid_date between '{date_query}' "
+        f"and '{date_query}') and dateid_hour = '{hour_query}' ")
+    ta_df = mysql_df(query_=query_)
+
     # ---------------------------------------------
     sites_df = cells_df.copy()[['SITE', 'LAT', 'LON']]
     # print("sites' data read", flush=True) # debug
